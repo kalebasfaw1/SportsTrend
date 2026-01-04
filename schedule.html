@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Schedule - SportsBetPro</title>
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+        <link href="css/styles.css" rel="stylesheet" />
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <style>
+            .sport-filter-btn {
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            .sport-filter-btn:hover {
+                transform: translateY(-2px);
+            }
+            .sport-filter-btn.active {
+                background-color: #0d6efd !important;
+                color: white !important;
+            }
+            .game-row {
+                transition: all 0.2s;
+                cursor: pointer;
+            }
+            .game-row:hover {
+                background-color: #f8f9fa;
+                transform: translateX(5px);
+            }
+            .value-badge {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            .injury-icon {
+                color: #fd7e14;
+            }
+            .date-header {
+                background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+                color: white;
+                position: sticky;
+                top: 56px;
+                z-index: 10;
+            }
+            .sport-section {
+                margin-bottom: 2rem;
+            }
+            .trend-hot { color: #dc3545; }
+            .trend-cold { color: #0dcaf0; }
+            .trend-neutral { color: #6c757d; }
+        </style>
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <!-- Navbar Brand-->
+            <a class="navbar-brand ps-3" href="index.html">SportsBetPro</a>
+            <!-- Sidebar Toggle-->
+            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+            <!-- Navbar Search-->
+            <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
+                <div class="input-group">
+                    <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
+                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
+                </div>
+            </form>
+            <!-- Navbar-->
+            <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="#!">Settings</a></li>
+                        <li><a class="dropdown-item" href="#!">Activity Log</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item" href="#!">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div id="layoutSidenav">
+            <div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <div class="sb-sidenav-menu-heading">Main</div>
+                            <a class="nav-link" href="index.html">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                Dashboard
+                            </a>
+                            
+                            <div class="sb-sidenav-menu-heading">Betting</div>
+                            <a class="nav-link" href="games.html">
+                                <div class="sb-nav-link-icon"><i class="fas fa-calendar"></i></div>
+                                Today's Games
+                            </a>
+                            <a class="nav-link active" href="schedule.html">
+                                <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
+                                Schedule
+                            </a>
+                            <a class="nav-link" href="mybets.html">
+                                <div class="sb-nav-link-icon"><i class="fas fa-receipt"></i></div>
+                                My Bets
+                            </a>
+                            
+                            <div class="sb-sidenav-menu-heading">Analytics</div>
+                            <a class="nav-link" href="charts.html">
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                Performance
+                            </a>
+                            <a class="nav-link" href="tables.html">
+                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                                Trends
+                            </a>
+                        </div>
+                    </div>
+                    <div class="sb-sidenav-footer">
+                        <div class="small">Logged in as:</div>
+                        User
+                    </div>
+                </nav>
+            </div>
+            <div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4">Game Schedule</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Schedule</li>
+                        </ol>
+                        
+                        <!-- Sport Filter Buttons -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2" id="sportFilters">
+                                    <button class="btn btn-outline-primary sport-filter-btn active" data-sport="all">
+                                        <i class="fas fa-asterisk me-1"></i> All Sports
+                                    </button>
+                                    <button class="btn btn-outline-primary sport-filter-btn" data-sport="NBA">
+                                        <i class="fas fa-basketball-ball me-1"></i> NBA
+                                    </button>
+                                    <button class="btn btn-outline-primary sport-filter-btn" data-sport="NFL">
+                                        <i class="fas fa-football-ball me-1"></i> NFL
+                                    </button>
+                                    <button class="btn btn-outline-primary sport-filter-btn" data-sport="NHL">
+                                        <i class="fas fa-hockey-puck me-1"></i> NHL
+                                    </button>
+                                    <button class="btn btn-outline-primary sport-filter-btn" data-sport="Soccer">
+                                        <i class="fas fa-futbol me-1"></i> Soccer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Schedule Container -->
+                        <div id="scheduleContainer"></div>
+                        
+                    </div>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; SportsBetPro 2024</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script>
+            // Mock data generator
+            function generateScheduleData() {
+                const today = new Date();
+                const scheduleByDate = {};
+                
+                // Generate games for next 7 days
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() + i);
+                    const dateKey = date.toISOString().split('T')[0];
+                    
+                    scheduleByDate[dateKey] = {
+                        date: date,
+                        games: []
+                    };
+                    
+                    // NBA games (most weekdays)
+                    if (i < 5) {
+                        const nbaGames = [
+                            { sport: 'NBA', home: 'Lakers', away: 'Celtics', time: '19:30', homeOdds: -145, awayOdds: +125, spread: -3.5, total: 218.5, value: true, injuries: 1, trend: 'hot' },
+                            { sport: 'NBA', home: 'Warriors', away: 'Nets', time: '22:00', homeOdds: +110, awayOdds: -130, spread: +2.5, total: 225.5, value: false, injuries: 0, trend: 'neutral' },
+                            { sport: 'NBA', home: 'Heat', away: 'Bucks', time: '19:00', homeOdds: -120, awayOdds: +100, spread: -2.5, total: 212.5, value: false, injuries: 2, trend: 'cold' },
+                        ];
+                        const numGames = Math.floor(Math.random() * 3) + 1;
+                        scheduleByDate[dateKey].games.push(...nbaGames.slice(0, numGames));
+                    }
+                    
+                    // NFL games (weekends)
+                    if (date.getDay() === 0 || date.getDay() === 6) {
+                        const nflGames = [
+                            { sport: 'NFL', home: '49ers', away: 'Cowboys', time: '13:00', homeOdds: -110, awayOdds: -110, spread: -2.5, total: 47.5, value: true, injuries: 0, trend: 'hot' },
+                            { sport: 'NFL', home: 'Chiefs', away: 'Bills', time: '16:25', homeOdds: -150, awayOdds: +130, spread: -3.5, total: 52.5, value: false, injuries: 1, trend: 'neutral' },
+                            { sport: 'NFL', home: 'Eagles', away: 'Packers', time: '20:20', homeOdds: -105, awayOdds: -115, spread: -1.5, total: 45.5, value: true, injuries: 0, trend: 'hot' },
+                        ];
+                        const numGames = Math.floor(Math.random() * 3) + 1;
+                        scheduleByDate[dateKey].games.push(...nflGames.slice(0, numGames));
+                    }
+                    
+                    // NHL games (most days)
+                    if (i < 6) {
+                        const nhlGames = [
+                            { sport: 'NHL', home: 'Rangers', away: 'Bruins', time: '19:00', homeOdds: +135, awayOdds: -155, spread: 1.5, total: 6.5, value: true, injuries: 2, trend: 'cold' },
+                            { sport: 'NHL', home: 'Maple Leafs', away: 'Canadiens', time: '19:30', homeOdds: -145, awayOdds: +125, spread: -1.5, total: 6.0, value: false, injuries: 0, trend: 'neutral' },
+                        ];
+                        const numGames = Math.floor(Math.random() * 2) + 1;
+                        scheduleByDate[dateKey].games.push(...nhlGames.slice(0, numGames));
+                    }
+                    
+                    // Soccer games (every other day)
+                    if (i % 2 === 0) {
+                        const soccerGames = [
+                            { sport: 'Soccer', home: 'Man City', away: 'Arsenal', time: '15:00', homeOdds: -120, awayOdds: +350, spread: -0.5, total: 2.5, value: false, injuries: 1, trend: 'hot' },
+                            { sport: 'Soccer', home: 'Liverpool', away: 'Chelsea', time: '17:30', homeOdds: -105, awayOdds: +290, spread: 0, total: 3.0, value: true, injuries: 0, trend: 'neutral' },
+                        ];
+                        scheduleByDate[dateKey].games.push(soccerGames[0]);
+                    }
+                }
+                
+                return scheduleByDate;
+            }
+
+            function formatDate(date) {
+                const today = new Date();
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                if (date.toDateString() === today.toDateString()) {
+                    return 'Today';
+                } else if (date.toDateString() === tomorrow.toDateString()) {
+                    return 'Tomorrow';
+                } else {
+                    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                }
+            }
+
+            function getSportIcon(sport) {
+                const icons = {
+                    'NBA': 'fa-basketball-ball',
+                    'NFL': 'fa-football-ball',
+                    'NHL': 'fa-hockey-puck',
+                    'Soccer': 'fa-futbol'
+                };
+                return icons[sport] || 'fa-circle';
+            }
+
+            function getSportColor(sport) {
+                const colors = {
+                    'NBA': 'primary',
+                    'NFL': 'danger',
+                    'NHL': 'info',
+                    'Soccer': 'success'
+                };
+                return colors[sport] || 'secondary';
+            }
+
+            function getTrendIcon(trend) {
+                const icons = {
+                    'hot': '🔥',
+                    'cold': '❄️',
+                    'neutral': '➖'
+                };
+                return icons[trend] || '➖';
+            }
+
+            function renderSchedule(scheduleData, filterSport = 'all') {
+                const container = document.getElementById('scheduleContainer');
+                
+                // Group games by sport
+                const groupedBySport = {};
+                Object.values(scheduleData).forEach(day => {
+                    day.games.forEach(game => {
+                        if (filterSport !== 'all' && game.sport !== filterSport) return;
+                        
+                        if (!groupedBySport[game.sport]) {
+                            groupedBySport[game.sport] = {};
+                        }
+                        const dateKey = day.date.toISOString().split('T')[0];
+                        if (!groupedBySport[game.sport][dateKey]) {
+                            groupedBySport[game.sport][dateKey] = {
+                                date: day.date,
+                                games: []
+                            };
+                        }
+                        groupedBySport[game.sport][dateKey].games.push(game);
+                    });
+                });
+
+                let html = '';
+                
+                // Render each sport section
+                Object.keys(groupedBySport).sort().forEach(sport => {
+                    html += `
+                        <div class="sport-section" data-sport="${sport}">
+                            <div class="card mb-3">
+                                <div class="card-header" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white;">
+                                    <h4 class="mb-0">
+                                        <i class="fas ${getSportIcon(sport)} me-2"></i>${sport}
+                                    </h4>
+                                </div>
+                                <div class="card-body p-0">
+                    `;
+                    
+                    // Render each date for this sport
+                    Object.entries(groupedBySport[sport])
+                        .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+                        .forEach(([dateKey, dayData]) => {
+                            html += `
+                                <div class="date-section">
+                                    <div class="date-header p-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">${formatDate(dayData.date)}</h5>
+                                            <small>${dayData.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                                        </div>
+                                    </div>
+                                    <div class="games-list">
+                            `;
+                            
+                            // Render each game
+                            dayData.games.forEach((game, idx) => {
+                                html += `
+                                    <div class="game-row p-3 border-bottom" onclick="viewGameDetails('${game.sport}', '${game.away}', '${game.home}')">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-4">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <span class="text-muted">${game.time}</span>
+                                                    <div>
+                                                        <div class="fw-bold">${game.away}</div>
+                                                        <div class="text-muted">@</div>
+                                                        <div class="fw-bold">${game.home}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="row text-center">
+                                                    <div class="col-4">
+                                                        <small class="text-muted d-block">Spread</small>
+                                                        <strong>${game.spread > 0 ? '+' : ''}${game.spread}</strong>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <small class="text-muted d-block">Total</small>
+                                                        <strong>${game.total}</strong>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <small class="text-muted d-block">ML</small>
+                                                        <strong>${game.homeOdds > 0 ? '+' : ''}${game.homeOdds}</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 text-end">
+                                                <div class="d-flex gap-2 justify-content-end align-items-center">
+                                                    ${game.value ? '<span class="badge value-badge">VALUE</span>' : ''}
+                                                    ${game.injuries > 0 ? `<i class="fas fa-band-aid injury-icon" title="${game.injuries} injuries"></i>` : ''}
+                                                    <span class="trend-${game.trend}">${getTrendIcon(game.trend)}</span>
+                                                    <i class="fas fa-chevron-right text-muted"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            html += `
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html || '<div class="alert alert-info">No games scheduled for this selection.</div>';
+            }
+
+            function viewGameDetails(sport, away, home) {
+                alert(`Game Details:\n\n${sport}\n${away} @ ${home}\n\nClick OK to view detailed analysis (feature coming soon)`);
+            }
+
+            // Initialize
+            const scheduleData = generateScheduleData();
+            let currentFilter = 'all';
+            renderSchedule(scheduleData, currentFilter);
+
+            // Sport filter functionality
+            document.querySelectorAll('.sport-filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll('.sport-filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Filter schedule
+                    currentFilter = this.dataset.sport;
+                    renderSchedule(scheduleData, currentFilter);
+                });
+            });
+
+            // Sidebar toggle
+            const sidebarToggle = document.body.querySelector('#sidebarToggle');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', event => {
+                    event.preventDefault();
+                    document.body.classList.toggle('sb-sidenav-toggled');
+                });
+            }
+        </script>
+    </body>
+</html>
