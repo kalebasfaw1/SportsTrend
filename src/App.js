@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { BarChart3, TrendingUp, Target, User, Home, Calendar, DollarSign, AlertCircle, ChevronRight, Search, Bell } from 'lucide-react';
-import './App.css';
 
 const SportsGamblingApp = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedSport, setSelectedSport] = useState('all');
   const [selectedGame, setSelectedGame] = useState(null);
+  const [scheduleData, setScheduleData] = useState(null);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleError, setScheduleError] = useState(null);
 
   // Mock data
   const upcomingGames = [
@@ -63,6 +65,255 @@ const SportsGamblingApp = () => {
     winRate: '54%',
     unitsWon: '+23.5',
     activeBets: 2
+  };
+
+  // Fetch real schedule data
+  const fetchSchedule = async () => {
+    setScheduleLoading(true);
+    setScheduleError(null);
+    
+    try {
+      // Using The Odds API for real sports data
+      // You'll need to get a free API key from https://the-odds-api.com/
+      const sports = ['basketball_nba', 'americanfootball_nfl', 'icehockey_nhl', 'soccer_epl'];
+      const apiKey = 'YOUR_API_KEY'; // Replace with actual API key
+      
+      // For demo purposes, we'll create realistic mock data
+      // In production, you'd fetch from the API like this:
+      // const response = await fetch(`https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${apiKey}&regions=us&markets=h2h,spreads,totals`);
+      
+      const mockScheduleData = generateMockSchedule();
+      setScheduleData(mockScheduleData);
+      
+    } catch (error) {
+      setScheduleError('Failed to load schedule');
+      console.error('Error fetching schedule:', error);
+    } finally {
+      setScheduleLoading(false);
+    }
+  };
+
+  // Generate realistic mock schedule data
+  const generateMockSchedule = () => {
+    const today = new Date();
+    const scheduleByDate = {};
+    
+    // Generate games for next 7 days
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dateKey = date.toISOString().split('T')[0];
+      
+      scheduleByDate[dateKey] = {
+        date: date,
+        games: []
+      };
+      
+      // NBA games
+      if (i < 5) {
+        const nbaGames = [
+          { sport: 'NBA', home: 'Lakers', away: 'Celtics', time: '19:30' },
+          { sport: 'NBA', home: 'Warriors', away: 'Nets', time: '22:00' },
+          { sport: 'NBA', home: 'Heat', away: 'Bucks', time: '19:00' },
+        ];
+        scheduleByDate[dateKey].games.push(...nbaGames.slice(0, Math.floor(Math.random() * 3) + 1));
+      }
+      
+      // NFL games (mostly weekends)
+      if (date.getDay() === 0 || date.getDay() === 6) {
+        const nflGames = [
+          { sport: 'NFL', home: '49ers', away: 'Cowboys', time: '13:00' },
+          { sport: 'NFL', home: 'Chiefs', away: 'Bills', time: '16:25' },
+          { sport: 'NFL', home: 'Eagles', away: 'Packers', time: '20:20' },
+        ];
+        scheduleByDate[dateKey].games.push(...nflGames.slice(0, Math.floor(Math.random() * 3) + 1));
+      }
+      
+      // NHL games
+      if (i < 6) {
+        const nhlGames = [
+          { sport: 'NHL', home: 'Rangers', away: 'Bruins', time: '19:00' },
+          { sport: 'NHL', home: 'Maple Leafs', away: 'Canadiens', time: '19:30' },
+        ];
+        scheduleByDate[dateKey].games.push(...nhlGames.slice(0, Math.floor(Math.random() * 2) + 1));
+      }
+      
+      // Soccer games
+      if (i % 2 === 0) {
+        const soccerGames = [
+          { sport: 'Soccer', home: 'Man City', away: 'Arsenal', time: '15:00' },
+          { sport: 'Soccer', home: 'Liverpool', away: 'Chelsea', time: '17:30' },
+        ];
+        scheduleByDate[dateKey].games.push(...soccerGames.slice(0, 1));
+      }
+    }
+    
+    return scheduleByDate;
+  };
+
+  // Load schedule when tab is activated
+  React.useEffect(() => {
+    if (activeTab === 'schedule' && !scheduleData) {
+      fetchSchedule();
+    }
+  }, [activeTab]);
+
+  const renderSchedule = () => {
+    if (scheduleLoading) {
+      return (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <div className="animate-pulse">
+            <Calendar size={48} className="mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-600">Loading schedule...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (scheduleError) {
+      return (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <AlertCircle size={48} className="mx-auto mb-4 text-red-400" />
+          <p className="text-gray-600 mb-4">{scheduleError}</p>
+          <button 
+            onClick={fetchSchedule}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    if (!scheduleData) {
+      return null;
+    }
+
+    // Group games by sport
+    const groupedBySport = {};
+    Object.values(scheduleData).forEach(day => {
+      day.games.forEach(game => {
+        if (!groupedBySport[game.sport]) {
+          groupedBySport[game.sport] = {};
+        }
+        const dateKey = day.date.toISOString().split('T')[0];
+        if (!groupedBySport[game.sport][dateKey]) {
+          groupedBySport[game.sport][dateKey] = {
+            date: day.date,
+            games: []
+          };
+        }
+        groupedBySport[game.sport][dateKey].games.push(game);
+      });
+    });
+
+    const formatDate = (date) => {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+      } else if (date.toDateString() === tomorrow.toDateString()) {
+        return 'Tomorrow';
+      } else {
+        return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Sport Filter */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex gap-2 overflow-x-auto">
+            <button
+              onClick={() => setSelectedSport('all')}
+              className={`px-4 py-2 rounded-lg whitespace-nowrap ${
+                selectedSport === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200'
+              }`}
+            >
+              All Sports
+            </button>
+            {Object.keys(groupedBySport).sort().map(sport => (
+              <button
+                key={sport}
+                onClick={() => setSelectedSport(sport)}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${
+                  selectedSport === sport ? 'bg-blue-600 text-white' : 'bg-gray-200'
+                }`}
+              >
+                {sport}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Schedule by Sport */}
+        {(selectedSport === 'all' ? Object.keys(groupedBySport).sort() : [selectedSport])
+          .filter(sport => groupedBySport[sport])
+          .map(sport => (
+            <div key={sport} className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
+                <h2 className="text-xl font-bold">{sport}</h2>
+              </div>
+              
+              {Object.entries(groupedBySport[sport])
+                .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+                .map(([dateKey, dayData]) => (
+                  <div key={dateKey} className="border-b last:border-b-0">
+                    <div className="bg-gray-50 px-4 py-3 font-semibold text-gray-700 flex items-center justify-between">
+                      <span>{formatDate(dayData.date)}</span>
+                      <span className="text-sm text-gray-500">
+                        {dayData.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                    
+                    <div className="divide-y">
+                      {dayData.games.map((game, idx) => (
+                        <div 
+                          key={idx} 
+                          className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => setSelectedGame({
+                            id: `${dateKey}-${sport}-${idx}`,
+                            sport: game.sport,
+                            homeTeam: game.home,
+                            awayTeam: game.away,
+                            startTime: game.time,
+                            homeOdds: Math.floor(Math.random() * 200) - 150,
+                            awayOdds: Math.floor(Math.random() * 200) - 150,
+                            spread: (Math.random() * 10 - 5).toFixed(1),
+                            total: (Math.random() * 20 + 200).toFixed(1),
+                            trend: ['hot', 'cold', 'neutral'][Math.floor(Math.random() * 3)],
+                            injuries: Math.floor(Math.random() * 3),
+                            value: Math.random() > 0.7
+                          })}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3">
+                                <div className="text-right w-32">
+                                  <div className="font-semibold">{game.away}</div>
+                                </div>
+                                <div className="text-gray-400">@</div>
+                                <div className="text-left w-32">
+                                  <div className="font-semibold">{game.home}</div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm text-gray-600">{game.time}</div>
+                              <ChevronRight size={20} className="text-gray-400 ml-auto" />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))}
+      </div>
+    );
   };
 
   const renderHome = () => (
@@ -408,7 +659,7 @@ const SportsGamblingApp = () => {
   );
 
   return (
-    <div className="App min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -425,12 +676,13 @@ const SportsGamblingApp = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-4">
+      <div className="max-w-7xl mx-auto p-4 pb-24">
         {selectedGame ? renderGameAnalysis() : (
           <>
             {activeTab === 'home' && renderHome()}
             {activeTab === 'analytics' && renderAnalytics()}
             {activeTab === 'bets' && renderBets()}
+            {activeTab === 'schedule' && renderSchedule()}
           </>
         )}
       </div>
@@ -461,6 +713,7 @@ const SportsGamblingApp = () => {
           </button>
           <button
             className="flex flex-col items-center text-gray-600"
+            onClick={() => { setActiveTab('schedule'); setSelectedGame(null); }}
           >
             <Calendar size={24} />
             <span className="text-xs mt-1">Schedule</span>
